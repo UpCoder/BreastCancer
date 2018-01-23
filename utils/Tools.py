@@ -315,15 +315,20 @@ def shuffle_image_label(images, labels):
     for cur_index in random_index:
         new_images.append(images[cur_index])
     return new_images, labels
+
+
 def resize_image(image, size):
     image = Image.fromarray(np.asanyarray(image, np.uint8))
     return image.resize((size, size))
+
+
 def get_boundingbox(mask_image):
     '''
     返回mask生成的bounding box
     :param mask_image:mask 文件
     :return:[xmin, xmax, ymin, ymax]
     '''
+    print np.shape(mask_image)
     xs, ys = np.where(mask_image == 1)
     return [
         np.min(xs),
@@ -339,6 +344,8 @@ def cal_liver_average(mhd_image, liver_mask_image):
     liver_mask_image[mhd_image_copy < 30] = 0
     # liver_mask_image[mhd_image_copy]
     return (1.0 * np.sum(mhd_image[liver_mask_image == 2])) / (1.0 * np.sum(liver_mask_image == 2))
+
+
 # 将数据按照指定的方式排序
 def changed_shape(image, shape):
     new_image = np.zeros(
@@ -423,6 +430,7 @@ def acc_binary_acc(logits, label):
             acc_count += 1
     return (1.0 * acc_count) / (1.0 * len(logits))
 
+
 # 计算Ａｃｃｕｒａｃｙ，并且返回每一类最大错了多少个
 def calculate_acc_error(logits, label, show=True):
     error_index = []
@@ -494,6 +502,7 @@ def calculate_tp(logits, labels):
             count += 1
     return count
 
+
 def calculate_recall(logits, labels):
     tp = calculate_tp(logits=logits, labels=labels)
     recall = (tp * 1.0) / (np.sum(labels == 1) * 1.0)
@@ -535,6 +544,7 @@ def convert2depthlaster(mask_image):
         res[:, :, i] = mask_image[i, :, :]
     return res
 
+
 def test_show_regression(type_name='HEM'):
     from glob import glob
     '''
@@ -566,6 +576,7 @@ def test_show_regression(type_name='HEM'):
     img = Image.fromarray(np.asarray(mhd_images, np.uint8))
     img.save('./' + type_name + '.jpg')
     show_image(mhd_images)
+
 
 def noisy(noise_typ,image):
    if noise_typ == "gauss":
@@ -645,5 +656,22 @@ def indices_to_one_hot(data, nb_classes):
     targets = np.array(data).reshape(-1)
     return [np.eye(nb_classes)[int(target)] for target in targets]
 
+
+def convertJPG2PNG(image_path, save_dir):
+    file_name = os.path.basename(image_path).split('.jpg')[0]
+    image = Image.open(image_path)
+    image.save(os.path.join(save_dir, file_name+'.png'))
+    print 'Image save in ', os.path.join(save_dir, file_name+'.png')
+
+
+def convertJPGs2PNGs(image_dir, save_dir):
+    names = os.listdir(image_dir)
+    for name in names:
+        if name.endswith('.jpg'):
+            convertJPG2PNG(os.path.join(image_dir, name), save_dir)
+
 if __name__ == '__main__':
-    test_show_regression()
+    convertJPGs2PNGs(
+        '/home/give/Documents/dataset/BOT_Game/test/test_jpg',
+        '/home/give/Documents/dataset/BOT_Game/test/test_png'
+    )
